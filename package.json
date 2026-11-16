@@ -1,0 +1,7 @@
+{
+  "name": "sofa-sd",
+  "private": true,
+  "type": "module",
+  "description": "Funções do Netlify do SOFA SD (a interface fica em frontend/)",
+  "dependencies": { "@netlify/blobs": "8.1.0" }
+}

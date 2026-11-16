@@ -1,0 +1,11 @@
+# SOFA SD no Netlify: interface estatica + funcoes de ao vivo.
+# Os dados (previsoes, tabelas, historico) sao gerados pelo GitHub Actions e lidos do ramo "data" do repositorio.
+[build]
+  command = "npm --prefix frontend ci && npm --prefix frontend run build"
+  publish = "web/dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+  VITE_HOSTED = "1"
+  VITE_DATA_BASE = "https://raw.githubusercontent.com/bunnielambs/sofa-sd/data"
