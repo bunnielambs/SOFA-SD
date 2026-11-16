@@ -4,6 +4,9 @@ name: Atualizar dados reais
 on:
   schedule:
     - cron: "17 9,15,21,3 * * *"   # 06h17, 12h17, 18h17 e 00h17 em Brasilia
+  push:
+    branches: [main]
+    paths: ["sofasd/**", ".github/workflows/dados.yml", "requirements-app.txt"]
   workflow_dispatch:
     inputs:
       treinar:

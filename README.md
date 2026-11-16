@@ -3,7 +3,13 @@
 Aplicativo de futebol com dados reais e previsões estatísticas próprias. Custo adicional: zero.
 Nenhum dado é inventado: quando a fonte gratuita não entrega algo, a tela mostra "indisponível" e o motivo.
 
-## Como rodar
+## Versão online (Netlify + GitHub)
+
+- **Site:** Netlify constrói a interface a partir deste repositório (`netlify.toml`) e roda as funções `/api/live` (placar do football-data.org) e `/api/events` (eventos, estatísticas e escalações da API-Football). As chaves ficam nas variáveis `FOOTBALL_DATA_ORG_KEY` e `API_FOOTBALL_KEY` do Netlify.
+- **Dados e modelos:** o workflow `.github/workflows/dados.yml` roda 4 vezes por dia no GitHub Actions, atualiza os resultados reais, treina os modelos quando eles têm mais de uma semana e publica os JSON no ramo `data`. Precisa do segredo `FOOTBALL_DATA_ORG_KEY` no repositório.
+- **iPhone:** abrir o site no Safari e usar Compartilhar > Adicionar à Tela de Início. Avisos de gol funcionam com o app aberto na tela; o iPhone não permite vibração pelo navegador.
+
+## Como rodar no computador
 
 Requisitos: Python 3.10 ou mais novo e internet.
 
