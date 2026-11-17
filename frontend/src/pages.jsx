@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { api, useApi, pct, num, dday, dtime, hhmm, longDay, isLive, ST, isPreview, isHosted, store } from './api.js'
 import { unlock, canVibrate } from './sound.js'
+import { BROADCAST, CHECKED } from './broadcast.js'
 import { Loader, Crest, ProbBar, Meter, ScoreNum, Src, NA, Sec, FormDots, MatchCard, CompareBars, CornerFlag, CardIcon, Toggle } from './ui.jsx'
 
 const Chips = ({ items, value, onChange, all }) => (
@@ -170,6 +171,8 @@ export function Match({ ctx, params }) {
     <Src label={m.source} when={m.updated_at} />
     {m.status === 'NO_SCORE' && <NA>A data desta partida já passou, mas a fonte gratuita ainda não publicou o placar. O SOFA SD não preenche placar por conta própria.</NA>}
 
+    {!fin && <WhereToWatch league={m.league} name={m.league_name} />}
+
     {ip && <Sec title="Probabilidades ao vivo" tag={'minuto ' + ip.minute}><Probs p={ip} /><p className="src">Dados reais usados: {ip.inputs_used.join(', ')}.{ip.missing.length ? ' Não disponíveis na fonte: ' + ip.missing.join(', ') + '.' : ''} O efeito de expulsão usa valor da literatura.</p></Sec>}
     {m.inplay_unavailable && <NA>Probabilidades ao vivo indisponíveis: {m.inplay_unavailable}</NA>}
 
@@ -212,6 +215,15 @@ export function Match({ ctx, params }) {
       : !fin && <NA>Histórico e confrontos indisponíveis: time ainda não ligado ao histórico.</NA>}
   </>)
 }
+function WhereToWatch({ league, name }) {
+  const b = BROADCAST[league]
+  return <Sec title="Onde assistir" tag="no Brasil">{b ? <div className="panel tv">
+    <div className="tvlist">{b.channels.map(([c, k], i) => <motion.span key={c} className="tvchip" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}><b>{c}</b><small>{k}</small></motion.span>)}</div>
+    <p className="tvnote">Esses são os canais com direitos de {name} na temporada {b.season}. O canal exato deste jogo não vem de nenhuma fonte gratuita.{b.note ? ' ' + b.note : ''}</p>
+    <p className="src">Fontes: {b.sources.map(([t, u], i) => <React.Fragment key={u}>{i ? ' · ' : ''}<a href={u} target="_blank" rel="noopener noreferrer">{t}</a></React.Fragment>)} · conferido em {CHECKED}. A programação pode mudar sem aviso.</p>
+  </div> : <NA>Não encontrei fonte confiável sobre quem transmite {name} no Brasil nesta temporada, então o SOFA SD não mostra canais para este jogo.</NA>}</Sec>
+}
+
 const Probs = ({ p }) => (<>
   <div className="p3">{[['Casa', p.p_home], ['Empate', p.p_draw], ['Fora', p.p_away]].map(([l, x], i) => <motion.div key={l} className={'pk k' + i} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.08 }}><b>{pct(x)}</b><span>{l}</span></motion.div>)}</div>
   <ProbBar h={p.p_home} d={p.p_draw} a={p.p_away} labels={false} />

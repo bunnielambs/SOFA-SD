@@ -185,3 +185,8 @@ header,main,nav,.wrap{position:relative;z-index:1}.top{position:sticky}.tabs{pos
 .share{display:inline-block;width:14px;height:16px;vertical-align:-2px;border:1.5px solid currentColor;border-top:0;border-radius:0 0 3px 3px;position:relative;margin:0 2px}
 .share::before{content:"";position:absolute;left:50%;top:-6px;width:1.5px;height:11px;background:currentColor;transform:translateX(-50%)}
 .unlock{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:#fff;color:#050505;border-radius:99px;padding:9px 16px;font-weight:600;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.6);white-space:nowrap}
+
+.tvlist{display:flex;flex-wrap:wrap;gap:8px}.tvchip{display:flex;flex-direction:column;border:1px solid #fff;border-radius:10px;padding:7px 11px;min-width:96px}
+.tvchip b{font-family:var(--display);font-size:19px;text-transform:uppercase;line-height:1.1}.tvchip small{font-size:11px}
+.tvchip:first-child{background:#fff;color:#050505}.tvchip:first-child small{color:#444}
+.tvnote{margin:10px 0 0;font-size:13.5px;color:#d6d6d6;max-width:64ch}.src a{color:inherit;text-decoration:underline;text-underline-offset:2px}
