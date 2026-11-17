@@ -110,15 +110,20 @@ class Service:
         if not keys()["fdorg"]:
             return
         today = dt.date.today()
-        r = fdorg.matches((today - dt.timedelta(days=3)).isoformat(), (today + dt.timedelta(days=10)).isoformat(), ttl)
-        if r["error"]:
-            self.last_errors["fdorg"] = r["error"]
+        # o plano gratuito recusa (HTTP 400) intervalos longos; consulta em janelas de 7 dias
+        wins = [(-3, 3), (4, 10)]
+        res = [fdorg.matches((today + dt.timedelta(days=a)).isoformat(), (today + dt.timedelta(days=b)).isoformat(), ttl) for a, b in wins]
+        errs = [x["error"] for x in res if x["error"]]
+        if errs:
+            self.last_errors["fdorg"] = errs[0]
         else:
             self.last_errors.pop("fdorg", None)
-        if not r["ok"]:
+        if not res[0]["ok"]:
             return
+        r = res[0]
+        allm = [m for x in res if x["ok"] for m in x["data"].get("matches", [])]
         by_lg = {}
-        for m in r["data"].get("matches", []):
+        for m in allm:
             lg = FD_TO_LEAGUE.get((m.get("competition") or {}).get("code"))
             if not lg or not m.get("utcDate"):
                 continue
