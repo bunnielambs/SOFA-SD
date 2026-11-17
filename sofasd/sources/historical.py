@@ -79,6 +79,11 @@ def refresh_couk(ttl=6 * 3600):
                          ("odd_h", "oh"), ("odd_d", "od"), ("odd_a", "oa")]:
                 d[a] = pd.to_numeric(x[b], errors="coerce") if b in x.columns else np.nan
             d["source"] = "couk"
+            if lg == "BRA" and d["date"].notna().sum() > 3000:
+                # A base historica aberta troca dia e mes em parte dos jogos do Brasileirao (ex.: 02/06 vira 06/02),
+                # o que duplica partidas. O CSV oficial do football-data.co.uk cobre 2012 em diante com datas certas.
+                with con() as c:
+                    c.execute("DELETE FROM results WHERE league='BRA' AND source='historico'")
             n = _upsert(d)
             out[lg] = dict(ok=True, rows=n, max_date=d["date"].max(), fetched_at=r["fetched_at"], stale=r["stale"], error=r["error"])
         except Exception as e:  # formato inesperado: nao derruba o app
