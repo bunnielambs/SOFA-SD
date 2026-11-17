@@ -8,4 +8,4 @@
 [build.environment]
   NODE_VERSION = "20"
   VITE_HOSTED = "1"
-  VITE_DATA_BASE = "https://raw.githubusercontent.com/bunnielambs/sofa-sd/data"
+  VITE_DATA_BASE = "https://raw.githubusercontent.com/bunnielambs/SOFA-SD/data"
