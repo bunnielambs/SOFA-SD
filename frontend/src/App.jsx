@@ -18,6 +18,8 @@ export default function App() {
   const savePrefs = p => { setPrefs(p); store.set('sofa_prefs', p); if (p.sound) unlock() }
   const [favs, setFavs] = useState(() => store.get('sofa_favs', []))
   const toggleFav = (league, team) => setFavs(f => { const has = f.some(x => x.league === league && x.team === team); const n = has ? f.filter(x => !(x.league === league && x.team === team)) : [...f, { league, team }]; store.set('sofa_favs', n); return n })
+  const [userName, setUserNameState] = useState(() => store.get('sofa_name', 'Sérgio Domingos'))
+  const setUserName = n => { setUserNameState(n); store.set('sofa_name', n) }
   const [goal, setGoal] = useState(null), [toasts, setToasts] = useState([]), [today, setToday] = useState(null)
   const toast = useCallback(t => { const id = Date.now() + Math.random(); setToasts(x => [...x, { ...t, id }]); setTimeout(() => setToasts(x => x.filter(y => y.id !== id)), 7000) }, [])
   const prev = useRef(null)
@@ -63,7 +65,7 @@ export default function App() {
     return () => { stop = true; t && clearInterval(t) }
   }, [toast])
 
-  const ctx = { go, back, prefs, savePrefs, favs, toggleFav, today, toast, onRed: (txt) => { play('red', prefsRef.current); toast({ kind: 'red', title: 'Cartão vermelho', text: txt }) },
+  const ctx = { userName, setUserName, go, back, prefs, savePrefs, favs, toggleFav, today, toast, onRed: (txt) => { play('red', prefsRef.current); toast({ kind: 'red', title: 'Cartão vermelho', text: txt }) },
     testGoal: () => { unlock(); play('goal', { ...prefsRef.current, sound: true }); setGoal({ test: true }) } }
   const Page = { home: Home, live: Games, games: Games, standings: Standings, more: More, match: Match, team: Team }[route.name] || Home
   const tab = TABS.some(t => t[0] === route.name) ? route.name : null

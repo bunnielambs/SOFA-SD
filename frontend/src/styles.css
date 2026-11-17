@@ -28,7 +28,7 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}small{color:var(-
 /* hero */
 .hero{position:relative;display:flex;justify-content:space-between;margin:14px 0 4px;padding:18px 16px;background:#fff;color:#050505;border-radius:4px 22px 4px 22px;overflow:hidden}
 .hero>div:first-child{position:relative;z-index:1;max-width:calc(100% - 84px)}.hero h1{font-size:clamp(26px,8.2vw,38px);line-height:.95;font-weight:800;text-transform:uppercase;font-style:italic}
-.eyebrow{margin:0 0 6px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.tagline{margin:10px 0 0;font-weight:600;font-size:14px;color:#333}.eyebrow{margin:0 0 6px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
 .stripes{position:absolute;right:-34px;top:0;bottom:0;width:120px;background:repeating-linear-gradient(115deg,#050505 0 14px,transparent 14px 28px);animation:slide 6s linear infinite}
 @keyframes slide{to{background-position:62px 0}}
 .cta{display:block;width:100%;margin:10px 0 0;padding:13px 14px;border:1px solid #fff;border-radius:12px;font-family:var(--display);font-weight:700;font-size:19px;text-transform:uppercase;letter-spacing:.03em}

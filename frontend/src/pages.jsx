@@ -17,7 +17,8 @@ export function Home({ ctx }) {
   const live = (today?.matches || []).filter(isLive), rest = (today?.matches || []).filter(m => !isLive(m))
   return (<>
     <div className="hero"><div><p className="eyebrow">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}</p>
-      <h1>O jogo inteiro,<br />em números reais.</h1></div><div className="stripes" aria-hidden="true" /></div>
+      <motion.h1 initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>{greeting()},<br />{ctx.userName || 'torcedor'}.</motion.h1>
+      <p className="tagline">O jogo inteiro, em números reais.</p></div><div className="stripes" aria-hidden="true" /></div>
     <InstallHint />
     {!prefs.sound && <motion.button className="cta" whileTap={{ scale: 0.97 }} onClick={() => { unlock(); savePrefs({ ...prefs, sound: true }) }}>Ativar som de gol e apitos<small>toca só quando um gol real chegar nos dados</small></motion.button>}
 
@@ -76,6 +77,12 @@ export function Home({ ctx }) {
     </Sec>
   </>)
 }
+// Saudacao pela hora do aparelho: 5h a 11h59 bom dia, 12h a 17h59 boa tarde, resto boa noite
+export function greeting(d = new Date()) {
+  const h = d.getHours()
+  return h >= 5 && h < 12 ? 'Bom dia' : h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite'
+}
+
 function InstallHint() {
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), standalone = window.navigator.standalone || window.matchMedia?.('(display-mode: standalone)').matches
   const [hide, setHide] = useState(() => store.get('sofa_install_hint', false))
@@ -262,6 +269,8 @@ export function More({ ctx }) {
 function Settings({ ctx }) {
   const { prefs, savePrefs } = ctx
   return (<>
+    <div className="panel"><label htmlFor="t-name">Seu nome na saudação</label>
+      <input id="t-name" value={ctx.userName} onChange={e => ctx.setUserName(e.target.value)} placeholder="Seu nome" maxLength={40} /></div>
     <div className="panel">
       <Toggle id="t-sound" on={prefs.sound} onChange={x => savePrefs({ ...prefs, sound: x })} label="Sons" hint="Gol, apito de início, fim do 1º tempo, apito final e cartão vermelho. Só toca depois de você ligar aqui." />
       <Toggle id="t-vib" on={prefs.vibrate} onChange={x => savePrefs({ ...prefs, vibrate: x })} label="Vibração" hint={canVibrate() ? 'Vibra em gols e eventos importantes.' : 'Este navegador ou aparelho não permite vibração (iPhone, por exemplo).'} />
