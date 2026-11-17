@@ -81,6 +81,7 @@ def main():
     for t in [hi.get("best_attack"), hi.get("best_defense")] + (hi.get("top_elo") or []):
         if t: teams.add((t["league"], t["team"]))
     W("intelligence.json", svc.intelligence())
+    cr = svc.crests(); W("crests.json", cr); print("escudos:", len(cr))
     for lg, t in sorted(teams):
         W(f"team/{lg}/{slug(t)}.json", svc.team(lg, t))
     W("leagues.json", [dict(code=k, name=v["name"], country=v["country"]) for k, v in LEAGUES.items()])

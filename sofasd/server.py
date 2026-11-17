@@ -65,6 +65,10 @@ def highlights():
 def intelligence():
     return J(svc.intelligence())
 
+@app.get("/api/crests")
+def crests():
+    return J(svc.crests())
+
 @app.get("/api/team")
 def team(league: str, name: str):
     if league not in LEAGUES: return J(dict(error="liga desconhecida"), 404)

@@ -3,6 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import { hostedApi } from './hosted.js'
 const SNAP = window.__SNAP__ || null
 export const isPreview = !!SNAP
+// Escudos reais (football-data.org). Carregados uma vez; sem chave o app usa monogramas.
+export const crestMap = { v: {} }
+export async function loadCrests() {
+  if (SNAP) { crestMap.v = SNAP.crests || {}; return crestMap.v }
+  const r = await api('crests'); crestMap.v = r && !r.error ? r : {}; return crestMap.v
+}
 export const isHosted = !SNAP && import.meta.env.VITE_HOSTED === '1'
 export const previewWhen = window.__SNAP_WHEN__ || ''
 

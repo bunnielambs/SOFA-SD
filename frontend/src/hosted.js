@@ -106,6 +106,7 @@ async function match(id) {
 export async function hostedApi(path) {
   try {
     const [p, qs] = path.split('?'), q = new URLSearchParams(qs || '')
+    if (p === 'crests') { try { return await file('crests.json', 3600000) } catch (e) { return {} } }
     if (['leagues', 'highlights', 'intelligence'].includes(p)) return await file(p + '.json')
     if (p === 'status') { const [s, L] = await Promise.all([file('status.json', 60000), live()]); return { ...s, hosted: true, live: L } }
     if (p === 'matches') return await matches(q.get('scope') || 'today', q.get('league') || '')

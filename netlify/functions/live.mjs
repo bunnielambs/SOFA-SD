@@ -1,6 +1,6 @@
 // Placar ao vivo do football-data.org (plano gratuito: 10 req/min, placar com atraso).
 // A chave fica na variavel FOOTBALL_DATA_ORG_KEY do Netlify; o celular nunca ve a chave.
-import { json, readCache, writeCache, sourceError } from "./_shared.mjs"
+import { json, readCache, writeCache, sourceError } from "../lib/shared.mjs"
 
 const COMPS = ["BSA", "PL", "ELC", "PD", "SA", "BL1", "FL1", "DED", "PPL"]
 const TTL = 45_000

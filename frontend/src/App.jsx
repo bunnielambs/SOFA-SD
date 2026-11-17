@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
-import { api, isPreview, previewWhen, isLive, store } from './api.js'
+import { api, isPreview, previewWhen, isLive, store, loadCrests } from './api.js'
 import { play, unlock, audioReady } from './sound.js'
 import { Logo, GoalOverlay, Toasts, BallsBg } from './ui.jsx'
 import { Home, Games, Match, Standings, Team, More } from './pages.jsx'
@@ -21,6 +21,8 @@ export default function App() {
   const [goal, setGoal] = useState(null), [toasts, setToasts] = useState([]), [today, setToday] = useState(null)
   const toast = useCallback(t => { const id = Date.now() + Math.random(); setToasts(x => [...x, { ...t, id }]); setTimeout(() => setToasts(x => x.filter(y => y.id !== id)), 7000) }, [])
   const prev = useRef(null)
+  const [, setCrestsReady] = useState(0)
+  useEffect(() => { loadCrests().then(m => setCrestsReady(Object.keys(m).length)) }, [])
   // iPhone e navegadores exigem um toque antes de liberar o som a cada vez que o app abre
   const [audioOk, setAudioOk] = useState(false)
   useEffect(() => {

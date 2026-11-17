@@ -1,6 +1,6 @@
 // Eventos, estatisticas e escalacoes ao vivo da API-Football (plano gratuito: 100 req/dia, 10 req/min).
 // So consulta quando alguem abre uma partida em andamento. Respostas ficam em cache e a cota do dia e protegida.
-import { json, readCache, writeCache, sourceError } from "./_shared.mjs"
+import { json, readCache, writeCache, sourceError } from "../lib/shared.mjs"
 
 const SOURCE = "API-Football (plano gratuito)"
 const RESERVE = 8 // nunca gastar as ultimas requisicoes do dia

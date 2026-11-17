@@ -475,6 +475,25 @@ class Service:
         out["squad"] = sq
         return out
 
+    def crests(self):
+        """Escudos enviados pelo football-data.org (precisa da chave gratuita). Chave: nome na fonte e nome no historico."""
+        out = {}
+        if not keys()["fdorg"]:
+            return out
+        for lg, cfg in LEAGUES.items():
+            r = fdorg.teams(cfg["fd"])
+            if not r["ok"]:
+                continue
+            amap = aliases.get_map(country_of(lg))
+            for t in r["data"].get("teams", []):
+                c = t.get("crest")
+                if not c:
+                    continue
+                for n in (t.get("name"), t.get("shortName"), amap.get(t.get("name"))):
+                    if n:
+                        out.setdefault(n, c)
+        return out
+
     def scorers(self, league):
         if not keys()["fdorg"]:
             return dict(available=False, reason="Artilharia e dados de jogadores exigem a chave gratuita do football-data.org. "

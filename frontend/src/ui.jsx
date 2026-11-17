@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { pct, dday, dtime, hhmm, isLive, ST, isPreview } from './api.js'
+import { pct, dday, dtime, hhmm, isLive, ST, isPreview, crestMap } from './api.js'
 
 export const Logo = ({ small }) => (
   <div className={'logo' + (small ? ' sm' : '')} aria-label="SOFA SD">
@@ -34,7 +34,8 @@ const hash = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCo
 // Escudo generico em monograma: nao copia escudo oficial de clube nenhum. Com chave do football-data.org usa o escudo enviado pela fonte.
 export function Crest({ name, url, size = 44 }) {
   const [bad, setBad] = React.useState(false)
-  if (url && !bad && !isPreview) return <img className="crest" src={url} width={size} height={size} alt="" onError={() => setBad(true)} loading="lazy" />
+  url = url || crestMap.v[name]
+  if (url && !bad && !isPreview) return <img className="crest" src={url} width={size} height={size} alt="" referrerPolicy="no-referrer" onError={() => setBad(true)} loading="lazy" />
   const v = hash(name) % 3, dark = v === 1
   return (
     <svg className="crest" width={size} height={size} viewBox="0 0 44 44" aria-hidden="true">
