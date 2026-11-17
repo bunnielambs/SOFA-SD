@@ -190,3 +190,15 @@ header,main,nav,.wrap{position:relative;z-index:1}.top{position:sticky}.tabs{pos
 .tvchip b{font-family:var(--display);font-size:19px;text-transform:uppercase;line-height:1.1}.tvchip small{font-size:11px}
 .tvchip:first-child{background:#fff;color:#050505}.tvchip:first-child small{color:#444}
 .tvnote{margin:10px 0 0;font-size:13.5px;color:#d6d6d6;max-width:64ch}.src a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+
+.topr{display:flex;gap:8px;align-items:center}
+.acctbtn{min-width:36px;height:36px;padding:0 12px;border-radius:99px;border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut)}
+.acctbtn.on{padding:0;width:36px;background:#fff;color:#050505;border-color:#fff;font-family:var(--display);font-size:19px;font-weight:800}
+.acctbtn:hover{border-color:#fff;color:#fff}.acctbtn.on:hover{color:#050505}
+.authform{display:flex;flex-direction:column;gap:4px}.authform .btn{margin-top:14px}.authform .link{margin-top:10px;align-self:center}
+input[type=email],input[type=password]{width:100%;background:var(--panel2);border:1px solid var(--line);color:#fff;border-radius:9px;padding:12px 10px;font:inherit;font-size:16px;margin-top:4px}
+input:not([type]),input[type=text]{font-size:16px}
+.okmsg{border-color:#fff;color:#fff}
+.profile{display:flex;gap:14px;align-items:center}.profile b{display:block;font-family:var(--display);font-size:24px;text-transform:uppercase}
+.avatar{width:56px;height:56px;border-radius:50%;background:#fff;color:#050505;display:grid;place-items:center;font:800 28px var(--display);flex:none}
+.btn:disabled{opacity:.6}

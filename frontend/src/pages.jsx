@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { api, useApi, pct, num, dday, dtime, hhmm, longDay, isLive, ST, isPreview, isHosted, store } from './api.js'
 import { unlock, canVibrate } from './sound.js'
 import { BROADCAST, CHECKED } from './broadcast.js'
+import { authAvailable, signIn, signUp, signOut, forgot, newPassword, authError } from './auth.js'
 import { Loader, Crest, ProbBar, Meter, ScoreNum, Src, NA, Sec, FormDots, MatchCard, CompareBars, CornerFlag, CardIcon, Toggle } from './ui.jsx'
 
 const Chips = ({ items, value, onChange, all }) => (
@@ -282,7 +283,8 @@ function Settings({ ctx }) {
   const { prefs, savePrefs } = ctx
   return (<>
     <div className="panel"><label htmlFor="t-name">Seu nome na saudação</label>
-      <input id="t-name" value={ctx.userName} onChange={e => ctx.setUserName(e.target.value)} placeholder="Seu nome" maxLength={40} /></div>
+      <input id="t-name" value={ctx.userName} onChange={e => ctx.setUserName(e.target.value)} placeholder="Seu nome" maxLength={40} />
+      {authAvailable && <small>{ctx.user ? 'Salvo na sua conta.' : 'Salvo só neste aparelho. Entre na sua conta para guardar em todos.'}</small>}</div>
     <div className="panel">
       <Toggle id="t-sound" on={prefs.sound} onChange={x => savePrefs({ ...prefs, sound: x })} label="Sons" hint="Gol, apito de início, fim do 1º tempo, apito final e cartão vermelho. Só toca depois de você ligar aqui." />
       <Toggle id="t-vib" on={prefs.vibrate} onChange={x => savePrefs({ ...prefs, vibrate: x })} label="Vibração" hint={canVibrate() ? 'Vibra em gols e eventos importantes.' : 'Este navegador ou aparelho não permite vibração (iPhone, por exemplo).'} />
@@ -326,5 +328,54 @@ function Status() {
       <h3>Previsto x aconteceu</h3>{[['Vitória do favorito (acerto)', r.acerto_modelo, r.acerto_casas, 'casas'], ...Object.entries(m.mercados).map(([k, x]) => [({ ambos_marcam: 'Ambos marcam', mais_1_5: 'Mais de 1,5', mais_2_5: 'Mais de 2,5', mais_3_5: 'Mais de 3,5' })[k], x.previsto, x.observado]), ['Escanteios +' + m.escanteios.linha, m.escanteios.previsto_over, m.escanteios.observado_over], ['Cartões +' + m.cartoes.linha, m.cartoes.previsto_over, m.cartoes.observado_over]]
         .map(([l, a, b, alt]) => <div className="cal" key={l}><span>{l}</span><div><Meter label={alt ? 'SOFA SD' : 'previsto'} value={a} /><Meter label={alt || 'aconteceu'} value={b} /></div></div>)}
       <small>Ao vivo: log loss no intervalo {num(m.ao_vivo_intervalo.logloss_no_intervalo, 3)} (antes do jogo {num(m.ao_vivo_intervalo.logloss_pre_jogo_mesmas_partidas, 3)}). {m.ao_vivo_intervalo.nota}</small></div> : <NA>Modelos ainda não treinados.</NA>}
+  </>)
+}
+
+/* ---------------- Conta ---------------- */
+export function Account({ ctx }) {
+  const { user, authMsg, setAuthMsg, userName, setUserName, favs } = ctx
+  const [mode, setMode] = useState('login'), [busy, setBusy] = useState(false), [msg, setMsg] = useState(null)
+  const [name, setName] = useState(''), [email, setEmail] = useState(''), [pw, setPw] = useState('')
+  const run = async (fn, ok) => { setBusy(true); setMsg(null); try { await fn(); if (ok) setMsg({ kind: 'ok', text: ok }) } catch (e) { setMsg({ kind: 'bad', text: authError(e) }) } setBusy(false) }
+  const Msg = ({ m }) => m ? <div className={'na ' + (m.kind === 'bad' ? 'bad' : 'okmsg')} role="status">{m.text}</div> : null
+  if (!authAvailable) return (<><h1 className="ptitle">Conta</h1><NA>As contas existem só na versão online do SOFA SD (sofa-sd.netlify.app). No app do computador, nome e favoritos ficam salvos neste aparelho.</NA></>)
+
+  if (authMsg?.kind === 'recovery') return (<>
+    <h1 className="ptitle">Nova senha</h1>
+    <form className="panel authform" onSubmit={e => { e.preventDefault(); run(async () => { await newPassword(pw); setAuthMsg({ kind: 'ok', text: 'Senha alterada. Você já está dentro da sua conta.' }) }) }}>
+      <label htmlFor="np">Escolha uma nova senha (mínimo 8 caracteres)</label><input id="np" type="password" autoComplete="new-password" minLength={8} required value={pw} onChange={e => setPw(e.target.value)} />
+      <button className="btn" disabled={busy}>{busy ? 'Salvando' : 'Salvar nova senha'}</button><Msg m={msg} /></form></>)
+
+  if (user) return (<>
+    <h1 className="ptitle">Minha conta</h1>
+    {authMsg && authMsg.kind !== 'recovery' && <Msg m={authMsg} />}
+    <div className="panel profile"><div className="avatar">{(userName || user.email || '?').trim()[0].toUpperCase()}</div>
+      <div><b>{userName || 'Sem nome'}</b><small>{user.email}</small></div></div>
+    <div className="panel"><label htmlFor="pn">Nome na saudação</label><input id="pn" value={userName} maxLength={40} onChange={e => setUserName(e.target.value)} />
+      <small>Salvo na sua conta: aparece em qualquer aparelho onde você entrar.</small></div>
+    <div className="panel"><h3>Guardado na sua conta</h3><p className="lead">{favs.length ? favs.length + (favs.length === 1 ? ' time favorito' : ' times favoritos') : 'Nenhum time favorito ainda'}, preferências de som e vibração e o nome da saudação.</p></div>
+    <button className="btn ghost" onClick={() => run(async () => { await signOut(); setAuthMsg(null) })} disabled={busy}>Sair da conta</button><Msg m={msg} />
+  </>)
+
+  return (<>
+    <h1 className="ptitle">{mode === 'signup' ? 'Criar conta' : mode === 'forgot' ? 'Esqueci a senha' : 'Entrar'}</h1>
+    {authMsg && <Msg m={authMsg} />}
+    <p className="lead">Com uma conta, seu nome, seus times favoritos e suas preferências ficam salvos e aparecem em qualquer aparelho. Sem conta, tudo continua funcionando.</p>
+    {mode !== 'forgot' && <div className="seg">{[['login', 'Entrar'], ['signup', 'Criar conta']].map(([k, l]) => <button key={k} className={mode === k ? 'on' : ''} onClick={() => { setMode(k); setMsg(null) }}>{l}{mode === k && <motion.i layoutId="seg3" />}</button>)}</div>}
+    <form className="panel authform" onSubmit={e => {
+      e.preventDefault()
+      if (mode === 'login') run(() => signIn(email, pw))
+      else if (mode === 'signup') run(async () => { const u = await signUp(name, email, pw); if (!u?.confirmedAt) setMsg({ kind: 'ok', text: 'Conta criada. Enviamos um link para ' + email.trim() + ': abra para confirmar e depois entre aqui. Se não chegar, olhe o spam.' }) })
+      else run(() => forgot(email), 'Se existir uma conta com esse e-mail, chegou um link para criar uma nova senha.')
+    }}>
+      {mode === 'signup' && <><label htmlFor="an">Seu nome</label><input id="an" autoComplete="name" required maxLength={40} value={name} onChange={e => setName(e.target.value)} /></>}
+      <label htmlFor="ae">E-mail</label><input id="ae" type="email" autoComplete="email" inputMode="email" required value={email} onChange={e => setEmail(e.target.value)} />
+      {mode !== 'forgot' && <><label htmlFor="ap">Senha{mode === 'signup' ? ' (mínimo 8 caracteres)' : ''}</label>
+        <input id="ap" type="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} minLength={mode === 'signup' ? 8 : undefined} required value={pw} onChange={e => setPw(e.target.value)} /></>}
+      <button className="btn" disabled={busy}>{busy ? 'Aguarde' : mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Criar conta' : 'Enviar link'}</button>
+      <Msg m={msg} />
+      {mode === 'login' && <button type="button" className="link" onClick={() => { setMode('forgot'); setMsg(null) }}>Esqueci a senha</button>}
+      {mode === 'forgot' && <button type="button" className="link" onClick={() => { setMode('login'); setMsg(null) }}>Voltar para entrar</button>}
+    </form>
   </>)
 }

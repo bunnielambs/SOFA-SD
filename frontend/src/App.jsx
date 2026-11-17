@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { api, isPreview, previewWhen, isLive, store, loadCrests } from './api.js'
 import { play, unlock, audioReady } from './sound.js'
+import { initAuth, onAuth, saveProfile, userName as uName, userSofa, authAvailable } from './auth.js'
 import { Logo, GoalOverlay, Toasts, BallsBg } from './ui.jsx'
-import { Home, Games, Match, Standings, Team, More } from './pages.jsx'
+import { Home, Games, Match, Standings, Team, More, Account } from './pages.jsx'
 
 const TABS = [['home', 'Início', 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z'], ['live', 'Ao vivo', 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14'],
   ['games', 'Jogos', 'M4 5h16v15H4zM4 10h16M9 3v4M15 3v4'], ['standings', 'Tabelas', 'M4 6h16M4 12h16M4 18h10'], ['more', 'Mais', 'M5 12h.01M12 12h.01M19 12h.01']]
@@ -18,11 +19,46 @@ export default function App() {
   const savePrefs = p => { setPrefs(p); store.set('sofa_prefs', p); if (p.sound) unlock() }
   const [favs, setFavs] = useState(() => store.get('sofa_favs', []))
   const toggleFav = (league, team) => setFavs(f => { const has = f.some(x => x.league === league && x.team === team); const n = has ? f.filter(x => !(x.league === league && x.team === team)) : [...f, { league, team }]; store.set('sofa_favs', n); return n })
-  const [userName, setUserNameState] = useState(() => store.get('sofa_name', 'Sérgio Domingos'))
+  const [userName, setUserNameState] = useState(() => store.get('sofa_name', ''))
   const setUserName = n => { setUserNameState(n); store.set('sofa_name', n) }
   const [goal, setGoal] = useState(null), [toasts, setToasts] = useState([]), [today, setToday] = useState(null)
   const toast = useCallback(t => { const id = Date.now() + Math.random(); setToasts(x => [...x, { ...t, id }]); setTimeout(() => setToasts(x => x.filter(y => y.id !== id)), 7000) }, [])
   const prev = useRef(null)
+  // ---- conta ----
+  const [user, setUser] = useState(null), [authMsg, setAuthMsg] = useState(null)
+  const applyAccount = u => {
+    const sofa = userSofa(u)
+    if (sofa) { // conta ja tem dados: eles valem neste aparelho
+      if (Array.isArray(sofa.favs)) { setFavs(sofa.favs); store.set('sofa_favs', sofa.favs) }
+      if (sofa.prefs) { setPrefs(p => ({ ...p, ...sofa.prefs })); store.set('sofa_prefs', { ...prefsRef.current, ...sofa.prefs }) }
+    } else { // primeira vez: leva para a conta o que estava salvo neste aparelho
+      saveProfile({ sofa: { favs: store.get('sofa_favs', []), prefs: store.get('sofa_prefs', {}) } }).catch(() => {})
+    }
+    if (uName(u)) { setUserNameState(uName(u)); store.set('sofa_name', uName(u)) }
+  }
+  useEffect(() => {
+    let off = () => {}
+    initAuth().then(({ user, callback, callbackError }) => {
+      if (user) { setUser(user); applyAccount(user) }
+      if (callbackError) setAuthMsg({ kind: 'bad', text: callbackError })
+      else if (callback?.type === 'recovery') { setAuthMsg({ kind: 'recovery' }); go('account') }
+      else if (callback?.type === 'confirmation' || callback?.type === 'signup') { setAuthMsg({ kind: 'ok', text: 'E-mail confirmado. Sua conta está pronta.' }); go('account') }
+    })
+    onAuth((ev, u) => {
+      if (ev === 'login') { setUser(u); applyAccount(u) }
+      if (ev === 'logout') setUser(null)
+      if (ev === 'user_updated' && u) setUser(u)
+      if (ev === 'recovery') { setAuthMsg({ kind: 'recovery' }); go('account') }
+    }).then(f => { off = f })
+    return () => off()
+  }, [])
+  // salva na conta quando favoritos, preferencias ou nome mudam
+  const saveTimer = useRef(null)
+  useEffect(() => {
+    if (!user) return
+    clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => saveProfile({ full_name: userName, sofa: { favs, prefs } }).catch(() => {}), 1200)
+  }, [favs, prefs, userName, user])
   const [, setCrestsReady] = useState(0)
   useEffect(() => { loadCrests().then(m => setCrestsReady(Object.keys(m).length)) }, [])
   // iPhone e navegadores exigem um toque antes de liberar o som a cada vez que o app abre
@@ -65,16 +101,17 @@ export default function App() {
     return () => { stop = true; t && clearInterval(t) }
   }, [toast])
 
-  const ctx = { userName, setUserName, go, back, prefs, savePrefs, favs, toggleFav, today, toast, onRed: (txt) => { play('red', prefsRef.current); toast({ kind: 'red', title: 'Cartão vermelho', text: txt }) },
+  const ctx = { user, setUser, authMsg, setAuthMsg, userName, setUserName, go, back, prefs, savePrefs, favs, toggleFav, today, toast, onRed: (txt) => { play('red', prefsRef.current); toast({ kind: 'red', title: 'Cartão vermelho', text: txt }) },
     testGoal: () => { unlock(); play('goal', { ...prefsRef.current, sound: true }); setGoal({ test: true }) } }
-  const Page = { home: Home, live: Games, games: Games, standings: Standings, more: More, match: Match, team: Team }[route.name] || Home
+  const Page = { account: Account, home: Home, live: Games, games: Games, standings: Standings, more: More, match: Match, team: Team }[route.name] || Home
   const tab = TABS.some(t => t[0] === route.name) ? route.name : null
   return (
     <MotionConfig reducedMotion="user">
       <BallsBg />
       <header className="top"><div className="wrap">
         {stack.length > 1 ? <button className="backbtn" onClick={back} aria-label="Voltar">‹ Voltar</button> : <Logo />}
-        <button className={'sndbtn' + (prefs.sound ? ' on' : '')} onClick={() => savePrefs({ ...prefs, sound: !prefs.sound })} aria-pressed={prefs.sound}>{prefs.sound ? 'Som ligado' : 'Som desligado'}</button>
+        <div className="topr">{authAvailable && <button className={'acctbtn' + (user ? ' on' : '')} onClick={() => go('account')} aria-label={user ? 'Minha conta' : 'Entrar'}>{user ? (userName || user.email || '?').trim()[0].toUpperCase() : 'Entrar'}</button>}
+        <button className={'sndbtn' + (prefs.sound ? ' on' : '')} onClick={() => savePrefs({ ...prefs, sound: !prefs.sound })} aria-pressed={prefs.sound}>{prefs.sound ? 'Som ligado' : 'Som desligado'}</button></div>
       </div></header>
       {isPreview && <div className="wrap"><p className="preview">Prévia estática. Dados reais capturados em {previewWhen}. Ao vivo, notificações de gol e atualização funcionam no app rodando no seu computador.</p></div>}
       <main className="wrap">
